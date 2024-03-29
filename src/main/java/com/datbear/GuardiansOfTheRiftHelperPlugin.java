@@ -101,7 +101,6 @@ public class GuardiansOfTheRiftHelperPlugin extends Plugin
 	private static final String BARRIER_DIALOG_FINISHING_UP = "It looks like the adventurers within are just finishing up. You must<br>wait until they are done to join.";
 
 	private static final double MAX_POWER_STONES = 277.78;
-	private static final double GREAT_GUARDIAN_POWER_PROGRESS = MAX_POWER_STONES/3;
 
 	@Getter(AccessLevel.PACKAGE)
 	private final Set<GameObject> guardians = new HashSet<>();
