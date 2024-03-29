@@ -232,4 +232,13 @@ public interface GuardiansOfTheRiftHelperConfig extends Config
 		section = overlays
 	)
 	default Color potentialBalanceColor() { return Color.GREEN; }
+
+    @ConfigItem(
+        keyName = "showRemainingPowerStones",
+        name = "Show remaining power stones",
+        description = "Show how many power stones are required to fully power the Great Guardian",
+        position =  14,
+        section = overlays
+    )
+    default boolean showRemainingPowerStones() { return false; }
 }

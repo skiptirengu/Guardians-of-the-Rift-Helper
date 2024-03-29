@@ -83,6 +83,7 @@ public class GuardiansOfTheRiftHelperPlugin extends Plugin
 	private static final int ELEMENTAL_RUNE_WIDGET_ID = 48889879;
 	private static final int GUARDIAN_COUNT_WIDGET_ID = 48889886;
 	private static final int PORTAL_WIDGET_ID = 48889884;
+	private static final int GUARDIAN_POWER_WIDGET_ID = 48889874;
 
 	private final static int PORTAL_SPRITE_ID = 4368;
 
@@ -92,10 +93,15 @@ public class GuardiansOfTheRiftHelperPlugin extends Plugin
 	private static final Pattern REWARD_POINT_PATTERN = Pattern.compile(REWARD_POINT_REGEX);
 	private static final String CHECK_POINT_REGEX = "You have (\\d+) catalytic energy and (\\d+) elemental energy";
 	private static final Pattern CHECK_POINT_PATTERN = Pattern.compile(CHECK_POINT_REGEX);
+	private static final String GUARDIAN_POWER_REGEX = "Guardian's Power: (\\d+)%";
+	private static final Pattern GUARDIAN_POWER_PATTERN = Pattern.compile(GUARDIAN_POWER_REGEX);
 
 	private static final int DIALOG_WIDGET_GROUP = 229;
 	private static final int DIALOG_WIDGET_MESSAGE = 1;
 	private static final String BARRIER_DIALOG_FINISHING_UP = "It looks like the adventurers within are just finishing up. You must<br>wait until they are done to join.";
+
+	private static final double MAX_POWER_STONES = 277.78;
+	private static final double GREAT_GUARDIAN_POWER_PROGRESS = MAX_POWER_STONES/3;
 
 	@Getter(AccessLevel.PACKAGE)
 	private final Set<GameObject> guardians = new HashSet<>();
@@ -145,12 +151,15 @@ public class GuardiansOfTheRiftHelperPlugin extends Plugin
 	@Getter(AccessLevel.PACKAGE)
 	private int lastRewardUsage;
 
+	@Getter(AccessLevel.PACKAGE)
+	private int remainingPowerStones;
 
 	private String portalLocation;
 	private int lastElementalRuneSprite;
 	private int lastCatalyticRuneSprite;
 	private boolean areGuardiansNeeded = false;
 	private int entryBarrierClickCooldown = 0;
+	private double lastElementalPower;
 
 	private final Map<String, String> expandCardinal = new HashMap<>();
 
@@ -246,12 +255,12 @@ public class GuardiansOfTheRiftHelperPlugin extends Plugin
 		lastElementalRuneSprite = parseRuneWidget(elementalRuneWidget, lastElementalRuneSprite);
 		lastCatalyticRuneSprite = parseRuneWidget(catalyticRuneWidget, lastCatalyticRuneSprite);
 
-		if(guardianCountWidget != null) {
+		if (guardianCountWidget != null) {
 			String text = guardianCountWidget.getText();
 			areGuardiansNeeded = text != null && !text.contains("10/10");
 		}
 
-		if(portalWidget != null && !portalWidget.isHidden()){
+		if (portalWidget != null && !portalWidget.isHidden()){
 			if(!portalSpawnTime.isPresent() && lastPortalDespawnTime.isPresent()) {
 				lastPortalDespawnTime = Optional.empty();
 				if (isFirstPortal) {
@@ -265,7 +274,7 @@ public class GuardiansOfTheRiftHelperPlugin extends Plugin
 			}
 			portalLocation = portalWidget.getText();
 			portalSpawnTime = portalSpawnTime.isPresent() ? portalSpawnTime : Optional.of(Instant.now());
-		} else if(elementalRuneWidget != null && !elementalRuneWidget.isHidden()) {
+		} else if (elementalRuneWidget != null && !elementalRuneWidget.isHidden()) {
 			if(portalSpawnTime.isPresent()){
 				lastPortalDespawnTime = Optional.of(Instant.now());
 			}
@@ -289,6 +298,23 @@ public class GuardiansOfTheRiftHelperPlugin extends Plugin
 					//For some reason these are reversed compared to everything else
 					catalyticRewardPoints = Integer.parseInt(checkMatcher.group(1));
 					elementalRewardPoints = Integer.parseInt(checkMatcher.group(2));
+				}
+			}
+		}
+
+		if (config.showRemainingPowerStones()) {
+			Widget guardianPowerWidget = client.getWidget(GUARDIAN_POWER_WIDGET_ID);
+
+			if (guardianPowerWidget != null) {
+				String text = guardianPowerWidget.getText();
+				Matcher matcher = GUARDIAN_POWER_PATTERN.matcher(text);
+
+				if (matcher.find()) {
+					double power = Double.parseDouble(matcher.group(1));
+					if (power > 0 && lastElementalPower != power) {
+						lastElementalPower = power;
+						remainingPowerStones = (int) Math.floor(MAX_POWER_STONES - ((power / 100) * MAX_POWER_STONES));
+					}
 				}
 			}
 		}

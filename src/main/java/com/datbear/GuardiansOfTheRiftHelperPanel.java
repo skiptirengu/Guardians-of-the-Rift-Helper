@@ -66,6 +66,13 @@ public class GuardiansOfTheRiftHelperPanel extends OverlayPanel {
 			}
 		}
 
+		if (config.showRemainingPowerStones()) {
+			panelComponent.getChildren().add(LineComponent.builder()
+					.left("Remaining stones:")
+					.right("" + plugin.getRemainingPowerStones())
+					.build());
+		}
+
         panelComponent.getChildren().add(LineComponent.builder()
                         .left("Reward points:")
                         .right(plugin.getElementalRewardPoints() + "/" + plugin.getCatalyticRewardPoints())
